@@ -107,12 +107,12 @@ function calc(container, trace) {
     var options = sceneOptions(container, subplot, trace, positions);
 
     // expanding axes is separate from options
-    if(!options.markers) {
+    if(!options.marker) {
         Axes.expand(xaxis, rawx, { padded: true });
         Axes.expand(yaxis, rawy, { padded: true });
     }
-    else if(Lib.isArrayOrTypedArray(options.markers.sizes)) {
-        var sizes = options.markers.sizes;
+    else if(Lib.isArrayOrTypedArray(options.marker.sizes)) {
+        var sizes = options.marker.sizes;
         Axes.expand(xaxis, rawx, { padded: true, ppad: sizes });
         Axes.expand(yaxis, rawy, { padded: true, ppad: sizes });
     }
