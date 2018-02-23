@@ -382,7 +382,7 @@ describe('@gl parcoords', function() {
             .then(done);
         });
 
-        it('Works with non-finite `values` elements', function(done) {
+        it('@noCI Works with non-finite `values` elements', function(done) {
 
             var mockCopy = Lib.extendDeep({}, mock2);
             var dim, i, j;
@@ -501,7 +501,7 @@ describe('@gl parcoords', function() {
             .then(done);
         });
 
-        it('Skip dimensions which are not plain objects or whose `values` is not an array', function(done) {
+        it('@noCI Skip dimensions which are not plain objects or whose `values` is not an array', function(done) {
 
             var mockCopy = Lib.extendDeep({}, mock1);
             var newDimension, i, j;
