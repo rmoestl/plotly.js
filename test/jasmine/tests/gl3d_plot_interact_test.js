@@ -1020,8 +1020,8 @@ describe('@gl Test gl3d annotations', function() {
         camera.eye = {x: x, y: y, z: z};
         scene.setCamera(camera);
         // need a fairly long delay to let the camera update here
-        // 300 was not robust for me (AJ), 500 seems to be.
-        return delay(500)();
+        // 300 is not robust for me (AJ), 500 seems to be, but CI times out then
+        return delay(300)();
     }
 
     it('should move with camera', function(done) {
