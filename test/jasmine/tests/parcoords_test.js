@@ -382,7 +382,7 @@ describe('@gl parcoords', function() {
             .then(done);
         });
 
-        it('@noCI Works with non-finite `values` elements', function(done) {
+        it('Works with non-finite `values` elements', function(done) {
 
             var mockCopy = Lib.extendDeep({}, mock2);
             var dim, i, j;
