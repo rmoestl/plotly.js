@@ -278,6 +278,7 @@ function prepSelect(e, startX, startY, dragOptions, mode) {
             function() {
                 selection = [];
 
+                // TODO What's the point of maintaining traceSelections array? Not used anywhere. Delete it.
                 var thisSelection, traceSelections = [], traceSelection;
                 for(i = 0; i < searchTraces.length; i++) {
                     searchInfo = searchTraces[i];
@@ -471,5 +472,6 @@ function clearSelect(zoomlayer) {
 
 module.exports = {
     prepSelect: prepSelect,
-    clearSelect: clearSelect
+    clearSelect: clearSelect,
+    updateSelectedState: updateSelectedState
 };

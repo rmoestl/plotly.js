@@ -30,7 +30,9 @@ var doTicksSingle = require('./axes').doTicksSingle;
 var getFromId = require('./axis_ids').getFromId;
 var prepSelect = require('./select').prepSelect;
 var clearSelect = require('./select').clearSelect;
+var updateSelectedState = require('./select').updateSelectedState;
 var scaleZoom = require('./scale_zoom');
+var makeEventData = require('../../components/fx/helpers').makeEventData;
 
 var constants = require('./constants');
 var MINDRAG = constants.MINDRAG;
@@ -141,6 +143,8 @@ function makeDragBox(gd, plotinfo, x, y, w, h, ns, ew) {
         return dragger;
     }
 
+    var clickHandler = obtainClickBehavior(xaxes, yaxes);
+
     var dragOptions = {
         element: dragger,
         gd: gd,
@@ -212,7 +216,7 @@ function makeDragBox(gd, plotinfo, x, y, w, h, ns, ew) {
         if(numClicks === 2 && !singleEnd) doubleClick();
 
         if(isMainDrag) {
-            Fx.click(gd, evt, plotinfo.id);
+            clickHandler(gd, evt, plotinfo.id);
         }
         else if(numClicks === 1 && singleEnd) {
             var ax = ns ? ya0 : xa0,
@@ -619,6 +623,32 @@ function makeDragBox(gd, plotinfo, x, y, w, h, ns, ew) {
         redrawObjs(gd._fullLayout.annotations || [], Registry.getComponentMethod('annotations', 'drawOne'));
         redrawObjs(gd._fullLayout.shapes || [], Registry.getComponentMethod('shapes', 'drawOne'));
         redrawObjs(gd._fullLayout.images || [], Registry.getComponentMethod('images', 'draw'), true);
+    }
+
+    function obtainClickBehavior(xaxes, yaxes) {
+        // TODO differentiate based on `clickmode` attr here
+        // return Fx.click;
+
+        return function(gd, evt, id) {
+            var calcData = gd.calcdata[0];
+            var searchTrace = {
+                _module: calcData[0].trace._module,
+                cd: calcData,
+                xaxis: xaxes[0],
+                yaxis: yaxes[0]
+            };
+
+            var traceSelection = {
+                pointNumber: 2,
+                x: xaxes[0].c2d(calcData[2].x),
+                y: yaxes[0].c2d(calcData[2].y)
+            };
+            calcData[2].selected = 1;
+            var selection = makeEventData(traceSelection, calcData[0].trace, calcData);
+
+            var eventData = {points: [selection]};
+            updateSelectedState(gd, [searchTrace], eventData);
+        };
     }
 
     function doubleClick() {
