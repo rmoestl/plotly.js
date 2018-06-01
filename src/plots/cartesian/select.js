@@ -471,7 +471,10 @@ function clearSelect(zoomlayer) {
 }
 
 module.exports = {
+    // TODO Rename to prepSelectOnDrag
     prepSelect: prepSelect,
     clearSelect: clearSelect,
+    // TODO don't export anymore
     updateSelectedState: updateSelectedState
+    // TODO Export prepSelectOnClick (in dragbox'es client code still depend on clickmode prop whether to use this or the default Fx.click (that only emits the plotly_clicked event)
 };

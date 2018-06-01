@@ -177,6 +177,7 @@ function makeDragBox(gd, plotinfo, x, y, w, h, ns, ew) {
         if(dragModeNow === 'lasso') dragOptions.minDrag = 1;
         else dragOptions.minDrag = undefined;
 
+        // TODO Maybe rename into isBoxOrLassoSelect
         if(isSelectOrLasso(dragModeNow)) {
             dragOptions.xaxes = xaxes;
             dragOptions.yaxes = yaxes;
