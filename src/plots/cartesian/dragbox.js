@@ -30,6 +30,7 @@ var doTicksSingle = require('./axes').doTicksSingle;
 var getFromId = require('./axis_ids').getFromId;
 var prepSelect = require('./select').prepSelect;
 var clearSelect = require('./select').clearSelect;
+// TODO Probably don't expose this in the final solution because it was only exposed to make things happen in tracer bullet phase
 var updateSelectedState = require('./select').updateSelectedState;
 var scaleZoom = require('./scale_zoom');
 var makeEventData = require('../../components/fx/helpers').makeEventData;
@@ -143,6 +144,7 @@ function makeDragBox(gd, plotinfo, x, y, w, h, ns, ew) {
         return dragger;
     }
 
+    // TODO Not sure to determine this outside the consuming function as a closure, maybe move it into prepFn
     var clickHandler = obtainClickBehavior(xaxes, yaxes);
 
     var dragOptions = {
@@ -179,9 +181,11 @@ function makeDragBox(gd, plotinfo, x, y, w, h, ns, ew) {
             dragOptions.xaxes = xaxes;
             dragOptions.yaxes = yaxes;
             // this attaches moveFn, clickFn, doneFn on dragOptions
+            // TODO Maybe rename the function to prepSelectOnDrag
             prepSelect(e, startX, startY, dragOptions, dragModeNow);
         } else {
             dragOptions.clickFn = clickFn;
+            // TODO Is this good? prepFn will always clear and reset the selection when not in lasso or select mode, but now we've a select mode on click, a selectOnClick behavior so to speak
             clearAndResetSelect();
 
             if(!allFixedRanges) {
@@ -629,26 +633,30 @@ function makeDragBox(gd, plotinfo, x, y, w, h, ns, ew) {
         // TODO differentiate based on `clickmode` attr here
         // return Fx.click;
 
-        return function(gd, evt, id) {
+        // TODO Maybe move the clicking behavior thing into the select module?
+        function selectOnClick(gd, evt, id) {
             var calcData = gd.calcdata[0];
+
+            // TODO handle clearing selection
+            // TODO handle un-selecting a data-point
+
+            var hoverdata = gd._hoverdata;
+
+            // TODO assert hoverdata array has exactly one element
+            calcData[hoverdata[0].pointNumber].selected = 1;
+
+            // Update selection state on trace
+            var selection = makeEventData(hoverdata[0], calcData[0].trace, calcData);
+            var eventData = {points: [selection]};
             var searchTrace = {
                 _module: calcData[0].trace._module,
                 cd: calcData,
-                xaxis: xaxes[0],
-                yaxis: yaxes[0]
+                xaxis: hoverdata[0].xaxis,
+                yaxis: hoverdata[0].yaxis
             };
-
-            var traceSelection = {
-                pointNumber: 2,
-                x: xaxes[0].c2d(calcData[2].x),
-                y: yaxes[0].c2d(calcData[2].y)
-            };
-            calcData[2].selected = 1;
-            var selection = makeEventData(traceSelection, calcData[0].trace, calcData);
-
-            var eventData = {points: [selection]};
             updateSelectedState(gd, [searchTrace], eventData);
-        };
+        }
+        return selectOnClick;
     }
 
     function doubleClick() {
