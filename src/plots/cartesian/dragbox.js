@@ -30,10 +30,9 @@ var doTicksSingle = require('./axes').doTicksSingle;
 var getFromId = require('./axis_ids').getFromId;
 var prepSelect = require('./select').prepSelect;
 var clearSelect = require('./select').clearSelect;
-// TODO Probably don't expose this in the final solution because it was only exposed to make things happen in tracer bullet phase
-var updateSelectedState = require('./select').updateSelectedState;
+var selectOnClick = require('./select').selectOnClick;
+
 var scaleZoom = require('./scale_zoom');
-var makeEventData = require('../../components/fx/helpers').makeEventData;
 
 var constants = require('./constants');
 var MINDRAG = constants.MINDRAG;
@@ -144,9 +143,6 @@ function makeDragBox(gd, plotinfo, x, y, w, h, ns, ew) {
         return dragger;
     }
 
-    // TODO Not sure to determine this outside the consuming function as a closure, maybe move it into prepFn
-    var clickHandler = obtainClickBehavior(xaxes, yaxes);
-
     var dragOptions = {
         element: dragger,
         gd: gd,
@@ -221,8 +217,11 @@ function makeDragBox(gd, plotinfo, x, y, w, h, ns, ew) {
         if(numClicks === 2 && !singleEnd) doubleClick();
 
         if(isMainDrag) {
-            clickHandler(gd, evt, plotinfo.id);
+            var clickHandler = obtainClickHandler();
+            clickHandler(gd, numClicks);
         }
+        // Allow manual editing of range bounds through an input field
+        // TODO consider extracting that to a method for clarity
         else if(numClicks === 1 && singleEnd) {
             var ax = ns ? ya0 : xa0,
                 end = (ns === 's' || ew === 'w') ? 0 : 1,
@@ -630,33 +629,12 @@ function makeDragBox(gd, plotinfo, x, y, w, h, ns, ew) {
         redrawObjs(gd._fullLayout.images || [], Registry.getComponentMethod('images', 'draw'), true);
     }
 
-    function obtainClickBehavior(xaxes, yaxes) {
+    function obtainClickHandler() {
         // TODO differentiate based on `clickmode` attr here
+        // Thought: we may end up returning thin wrapping functions that
+        // call the real functions based on the `clickmode` attr
+
         // return Fx.click;
-
-        // TODO Maybe move the clicking behavior thing into the select module?
-        function selectOnClick(gd, evt, id) {
-            var calcData = gd.calcdata[0];
-
-            // TODO handle clearing selection
-            // TODO handle un-selecting a data-point
-
-            var hoverdata = gd._hoverdata;
-
-            // TODO assert hoverdata array has exactly one element
-            calcData[hoverdata[0].pointNumber].selected = 1;
-
-            // Update selection state on trace
-            var selection = makeEventData(hoverdata[0], calcData[0].trace, calcData);
-            var eventData = {points: [selection]};
-            var searchTrace = {
-                _module: calcData[0].trace._module,
-                cd: calcData,
-                xaxis: hoverdata[0].xaxis,
-                yaxis: hoverdata[0].yaxis
-            };
-            updateSelectedState(gd, [searchTrace], eventData);
-        }
         return selectOnClick;
     }
 
