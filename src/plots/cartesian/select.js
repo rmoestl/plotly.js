@@ -310,8 +310,6 @@ function prepSelect(e, startX, startY, dragOptions, mode) {
         throttle.done(throttleID).then(function() {
             throttle.clear(throttleID);
 
-            // clear visual boundaries of selection area if displayed
-            outlines.remove();
             if(numClicks === 2) {
                 for(i = 0; i < searchTraces.length; i++) {
                     searchInfo = searchTraces[i];
@@ -320,6 +318,9 @@ function prepSelect(e, startX, startY, dragOptions, mode) {
 
                 updateSelectedState(gd, searchTraces);
                 gd.emit('plotly_deselect', null);
+
+                // clear visual boundaries of selection area if displayed
+                outlines.remove();
             }
             else {
                 // TODO What to do with the code below because we now have behavior for a single click
