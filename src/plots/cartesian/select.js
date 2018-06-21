@@ -15,6 +15,7 @@ var Registry = require('../../registry');
 var Color = require('../../components/color');
 var Fx = require('../../components/fx');
 
+var difference = require('../../lib/set_operations').difference;
 var polygon = require('../../lib/polygon');
 var throttle = require('../../lib/throttle');
 var makeEventData = require('../../components/fx/helpers').makeEventData;
@@ -287,9 +288,8 @@ function prepSelect(e, startX, startY, dragOptions, mode) {
                     var currentPolygonTester = polygonTester(currentPolygon);
                     var pointIds = searchInfo._module.getPointsIn(searchInfo, currentPolygonTester);
                     traceSelection = searchInfo._module.selectPoints(searchInfo, pointIds);
-                    var pointsNoLongerSelected = pointsInPolygon.filter(function(p) {
-                        return pointIds.indexOf(p) < 0;
-                    });
+                    var pointsNoLongerSelected = difference(pointsInPolygon, pointIds);
+
                     searchInfo._module.deselectPoints(searchInfo, pointsNoLongerSelected);
                     pointsInPolygon = pointIds;
 
