@@ -51,6 +51,7 @@ function prepSelect(e, startX, startY, dragOptions, mode) {
     var subtract = e.altKey;
 
     var filterPoly, testPoly, mergedPolygons, currentPolygon;
+    var pointsInPolygon = [];
     var i, cd, trace, searchInfo, eventData;
 
     var selectingOnSameSubplot = (
@@ -283,7 +284,16 @@ function prepSelect(e, startX, startY, dragOptions, mode) {
                 for(i = 0; i < searchTraces.length; i++) {
                     searchInfo = searchTraces[i];
 
-                    traceSelection = searchInfo._module.selectPoints(searchInfo, testPoly, shouldRetainSelection(e));
+                    var currentPolygonTester = polygonTester(currentPolygon);
+                    var pointIds = searchInfo._module.getPointsIn(searchInfo, currentPolygonTester);
+                    traceSelection = searchInfo._module.selectPoints(searchInfo, pointIds);
+                    var pointsNoLongerSelected = pointsInPolygon.filter(function(p) {
+                        return pointIds.indexOf(p) < 0;
+                    });
+                    searchInfo._module.deselectPoints(searchInfo, pointsNoLongerSelected);
+                    pointsInPolygon = pointIds;
+
+                    // traceSelection = searchInfo._module.selectPoints(searchInfo, testPoly, shouldRetainSelection(e));
                     traceSelections.push(traceSelection);
 
                     thisSelection = fillSelectionItem(traceSelection, searchInfo);
@@ -313,7 +323,8 @@ function prepSelect(e, startX, startY, dragOptions, mode) {
             if(numClicks === 2) {
                 for(i = 0; i < searchTraces.length; i++) {
                     searchInfo = searchTraces[i];
-                    searchInfo._module.selectPoints(searchInfo, false);
+                    // searchInfo._module.selectPoints(searchInfo, false);
+                    searchInfo._module.clearSelection(searchInfo);
                 }
 
                 updateSelectedState(gd, searchTraces);
@@ -371,23 +382,25 @@ function selectOnClick(gd, numClicks, evt) {
     if(selectPreconditionsMet) {
         var trace = calcData[0].trace,
             hoverDatum = hoverData[0],
-            module = trace._module;
+            module = trace._module,
+            searchInfo = _createSearchInfo(module, calcData, hoverDatum.xaxis, hoverDatum.yaxis);
 
         // Execute selection by delegating to respective module
         var retainSelection = shouldRetainSelection(evt),
             pointSelected = isPointSelected(trace, hoverDatum.pointNumber),
             onePointSelectedOnly = isOnePointSelectedOnly(trace);
 
+        if(!retainSelection) {
+            module.clearSelection(searchInfo);
+        }
+
         var shouldDeselectPoint = (pointSelected && onePointSelectedOnly) ||
           (pointSelected && !onePointSelectedOnly && retainSelection);
-
         var newTraceSelection = shouldDeselectPoint ?
-          module.deselectPoint(calcData, hoverDatum, retainSelection) :
-          module.selectPoint(calcData, hoverDatum, retainSelection);
+          module.deselectPoints(searchInfo, [hoverDatum.pointNumber]) :
+          module.selectPoints(searchInfo, [hoverDatum.pointNumber]);
 
         // Update selection state
-        var searchInfo =
-          _createSearchInfo(module, calcData, hoverDatum.xaxis, hoverDatum.yaxis);
         var selection = fillSelectionItem(newTraceSelection, searchInfo);
         var eventData = {points: selection};
 
