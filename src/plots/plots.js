@@ -1162,7 +1162,7 @@ plots.supplyTraceDefaults = function(traceIn, colorIndex, layout, traceInIndex, 
             traceOut.visible = !!traceOut.visible;
         }
 
-        if(_module && _module.selectPoints) {
+        if(_module && _module.getPointsIn && _module.toggleSelected) {
             coerce('selectedpoints');
         }
 

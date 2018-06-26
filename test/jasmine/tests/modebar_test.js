@@ -219,7 +219,7 @@ describe('ModeBar', function() {
                 type: 'scatter',
                 visible: true,
                 mode: 'markers',
-                _module: {selectPoints: true}
+                _module: {getPointsIn: true, toggleSelected: true}
             }];
 
             manageModeBar(gd);
@@ -243,7 +243,7 @@ describe('ModeBar', function() {
                 type: 'box',
                 visible: true,
                 boxpoints: 'all',
-                _module: {selectPoints: true}
+                _module: {getPointsIn: true, toggleSelected: true}
             }];
 
             manageModeBar(gd);
@@ -315,7 +315,7 @@ describe('ModeBar', function() {
                 type: 'scattergeo',
                 visible: true,
                 mode: 'markers',
-                _module: {selectPoints: true}
+                _module: {getPointsIn: true, toggleSelected: true}
             }];
 
             manageModeBar(gd);
@@ -355,7 +355,7 @@ describe('ModeBar', function() {
                 type: 'scatter',
                 visible: true,
                 mode: 'markers',
-                _module: {selectPoints: true}
+                _module: {getPointsIn: true, toggleSelected: true}
             }];
 
             manageModeBar(gd);
@@ -447,7 +447,7 @@ describe('ModeBar', function() {
                 type: 'scatter',
                 visible: true,
                 mode: 'markers',
-                _module: {selectPoints: true}
+                _module: {getPointsIn: true, toggleSelected: true}
             }];
 
             manageModeBar(gd);
@@ -469,7 +469,7 @@ describe('ModeBar', function() {
                 type: 'scatter',
                 visible: true,
                 mode: 'markers',
-                _module: {selectPoints: true}
+                _module: {getPointsIn: true, toggleSelected: true}
             }];
             gd._fullLayout.xaxis = {fixedrange: false};
             gd._fullLayout._basePlotModules = [{ name: 'cartesian' }, { name: 'pie' }];
@@ -525,7 +525,7 @@ describe('ModeBar', function() {
                 type: 'scatterternary',
                 visible: true,
                 mode: 'markers',
-                _module: {selectPoints: true}
+                _module: {getPointsIn: true, toggleSelected: true}
             }];
             gd._fullLayout._basePlotModules = [{ name: 'ternary' }];
 
