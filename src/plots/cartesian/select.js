@@ -374,76 +374,49 @@ function prepSelect(e, startX, startY, dragOptions, mode) {
 // Missing features
 // ----------------
 // TODO handle clearing selection when no point is clicked (based on hoverData)
-// TODO do we have to consider multiple traces?
-// TODO Only execute selectOnClick functionality if the trace of hoverData supports it
+// TODO Only execute selectOnClick functionality if the trace of hoverData implements selection interface
+// TODO Why not use forEach to iterate arrays?
 function selectOnClick(gd, numClicks, evt, outlines) {
     var hoverData = gd._hoverdata,
         isHoverDataSet = hoverData && Array.isArray(hoverData),
-        i;
+        retainSelection = shouldRetainSelection(evt),
+        i, j;
 
-    if(isHoverDataSet) {
+    if(isHoverDataSet && numClicks === 1) {
         var allSelectionItems = [];
 
         var searchTraces = determineSearchTraces(gd);
         for(i = 0; i < searchTraces.length; i++) {
-            var searchInfo = searchTraces[i];
+            var traceSelection,
+                searchInfo = searchTraces[i],
+                trace = searchInfo.cd[0].trace;
+
+            if(!retainSelection) {
+                searchInfo._module.toggleSelected(searchInfo, false);
+                if(outlines) outlines.remove();
+            }
+
             var clickedPts = clickedPtsFor(searchInfo, hoverData);
-            var traceSelection = searchInfo._module.toggleSelected(searchInfo, true, clickedPts);
+            if(clickedPts.length > 0) {
+                for(j = 0; j < clickedPts.length; j++) {
+                    var clickedPt = clickedPts[j];
+                    var shouldSelect = !isPointSelected(trace, clickedPt);
+                    traceSelection = searchInfo._module.toggleSelected(searchInfo, shouldSelect, [clickedPt]);
+                }
+            } else {
+                // If current trace has no pts clicked, we at least call toggleSelected
+                // with an empty array to obtain currently selected points for this trace.
+                traceSelection = searchInfo._module.toggleSelected(searchInfo, true, []);
+            }
+
             allSelectionItems = allSelectionItems.concat(fillSelectionItem(traceSelection, searchInfo));
         }
 
         var eventData = {points: allSelectionItems};
         updateSelectedState(gd, searchTraces, eventData);
 
-        // var retainSelection = shouldRetainSelection(evt),
-        //     allSelectionItems = [],
-        //     searchTraces = determineSearchTraces(gd),
-        //     onePointSelectedOnly = isOnePointSelectedOnly(searchTraces);
-        //
-        // // Start a new selection if retain is not set
-        // if(!retainSelection) clearSelectionInTraces(gd);
-        //
-        // // Go through hoverData and update selection accordingly
-        // for(i = 0; i < hoverData.length; i++) {
-        //     var hoverDatum = hoverData[i];
-        //     var calcDatum = gd.calcdata[hoverDatum.fullData._expandedIndex];
-        //
-        //     var selectPreconditionsMet = numClicks === 1;
-        //
-        //     if(selectPreconditionsMet) {
-        //         var trace = calcDatum[0].trace,
-        //             module = trace._module,
-        //             searchInfo = _createSearchInfo(module, calcDatum, hoverDatum.xaxis, hoverDatum.yaxis);
-        //
-        //         // Execute selection by delegating to respective module
-        //         // var retainSelection = shouldRetainSelection(evt),
-        //         var pointSelected = isPointSelected(trace, hoverDatum.pointNumber);
-        //
-        //         // if(!retainSelection) module.toggleSelected(searchInfo, false);
-        //
-        //         var shouldDeselectPoint = pointSelected && (onePointSelectedOnly || retainSelection);
-        //         var newTraceSelection =
-        //           module.toggleSelected(searchInfo, !shouldDeselectPoint, [hoverDatum.pointNumber]);
-        //
-        //         // When not retaining or when the sole selected
-        //         // point gets deselected, remove outlines
-        //         if(outlines &&
-        //           (!retainSelection || (pointSelected && onePointSelectedOnly))) {
-        //             outlines.remove();
-        //         }
-        //
-        //         // Update selection state
-        //         var selectionItems = fillSelectionItem(newTraceSelection, searchInfo);
-        //         allSelectionItems = allSelectionItems.concat(selectionItems);
-        //         // var eventData = {points: selection};
-        //
-        //         // updateSelectedState(gd, [searchInfo], eventData);
-        //     }
-        // }
-        //
-        // // Call updateSelectedState once for proper styling
-        // var eventData = {points: allSelectionItems};
-        // updateSelectedState(gd, searchTraces, eventData);
+        // Remove outlines if no point is selected anymore
+        if(allSelectionItems.length === 0 && outlines) outlines.remove();
     }
 
     function clickedPtsFor(searchInfo, hoverData) {
@@ -457,18 +430,6 @@ function selectOnClick(gd, numClicks, evt, outlines) {
         }
 
         return clickedPts;
-    }
-
-    function clearSelectionInTraces(gd) {
-        var searchTraces = determineSearchTraces(gd);
-
-        for(var i = 0; i < searchTraces.length; i++) {
-            var searchInfo = searchTraces[0];
-            searchInfo._module.toggleSelected(searchInfo, false);
-        }
-
-        // TODO Emit select events properly
-        updateSelectedState(gd, searchTraces);
     }
 
     // TODO DRY
@@ -498,19 +459,6 @@ function shouldRetainSelection(evt) {
 function isPointSelected(trace, pointNumber) {
     if(!trace.selectedpoints && !Array.isArray(trace.selectedpoints)) return false;
     return trace.selectedpoints.indexOf(pointNumber) > -1;
-}
-
-function isOnePointSelectedOnly(searchTraces) {
-    var pointsSelected = 0;
-    for(var i = 0; i < searchTraces.length; i++) {
-        var trace = searchTraces[i];
-        if(!trace.selectedpoints && !Array.isArray(trace.selectedpoints)) continue;
-
-        pointsSelected += trace.selectedpoints.length;
-
-        if(pointsSelected > 1) return false;
-    }
-    return pointsSelected === 1;
 }
 
 // TODO Consider using in other places around here as well
