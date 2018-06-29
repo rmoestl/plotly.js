@@ -383,6 +383,7 @@ function selectOnClick(gd, numClicks, evt, outlines) {
     var searchTraces;
     var searchInfo;
     var trace;
+    var multiPtsSelected;
     var clickedPts;
     var clickedPt;
     var shouldSelect;
@@ -396,6 +397,8 @@ function selectOnClick(gd, numClicks, evt, outlines) {
         allSelectionItems = [];
 
         searchTraces = determineSearchTraces(gd);
+        multiPtsSelected = areMultiplePointsSelected(searchTraces);
+
         // TODO Use forEach
         for(i = 0; i < searchTraces.length; i++) {
             searchInfo = searchTraces[i];
@@ -415,7 +418,8 @@ function selectOnClick(gd, numClicks, evt, outlines) {
                 // TODO Use forEach
                 for(j = 0; j < clickedPts.length; j++) {
                     clickedPt = clickedPts[j];
-                    shouldSelect = !isPointSelected(trace, clickedPt);
+                    var ptSelected = isPointSelected(trace, clickedPt);
+                    shouldSelect = !ptSelected || (ptSelected && multiPtsSelected && !retainSelection);
                     traceSelection = searchInfo._module.toggleSelected(searchInfo, shouldSelect, [clickedPt]);
                 }
             } else {
@@ -477,6 +481,20 @@ function shouldRetainSelection(evt) {
 function isPointSelected(trace, pointNumber) {
     if(!trace.selectedpoints && !Array.isArray(trace.selectedpoints)) return false;
     return trace.selectedpoints.indexOf(pointNumber) > -1;
+}
+
+function areMultiplePointsSelected(searchTraces) {
+    var ptsSelected = 0;
+    for(var i = 0; i < searchTraces.length; i++) {
+        var trace = searchTraces[i].cd[0].trace;
+        if(Array.isArray(trace.selectedpoints)) {
+            ptsSelected += trace.selectedpoints.length;
+        }
+
+        if(ptsSelected > 1) return true;
+    }
+
+    return ptsSelected > 1;
 }
 
 // TODO Consider using in other places around here as well
