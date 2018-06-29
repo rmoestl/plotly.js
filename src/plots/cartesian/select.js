@@ -377,30 +377,45 @@ function prepSelect(e, startX, startY, dragOptions, mode) {
 // TODO Only execute selectOnClick functionality if the trace of hoverData implements selection interface
 // TODO Why not use forEach to iterate arrays?
 function selectOnClick(gd, numClicks, evt, outlines) {
-    var hoverData = gd._hoverdata,
-        isHoverDataSet = hoverData && Array.isArray(hoverData),
-        retainSelection = shouldRetainSelection(evt),
-        i, j;
+    var hoverData = gd._hoverdata;
+    var isHoverDataSet = hoverData && Array.isArray(hoverData);
+    var retainSelection = shouldRetainSelection(evt);
+    var searchTraces;
+    var searchInfo;
+    var trace;
+    var clickedPts;
+    var clickedPt;
+    var shouldSelect;
+    var traceSelection;
+    var allSelectionItems;
+    var eventData;
+    var i;
+    var j;
 
     if(isHoverDataSet && numClicks === 1) {
-        var allSelectionItems = [];
+        allSelectionItems = [];
 
-        var searchTraces = determineSearchTraces(gd);
+        searchTraces = determineSearchTraces(gd);
+        // TODO Use forEach
         for(i = 0; i < searchTraces.length; i++) {
-            var traceSelection,
-                searchInfo = searchTraces[i],
-                trace = searchInfo.cd[0].trace;
+            searchInfo = searchTraces[i];
+            trace = searchInfo.cd[0].trace;
 
+            // Start new selection if needed
             if(!retainSelection) {
                 searchInfo._module.toggleSelected(searchInfo, false);
                 if(outlines) outlines.remove();
             }
 
-            var clickedPts = clickedPtsFor(searchInfo, hoverData);
+            // Determine clicked points,
+            // call selection modification functions of the trace's module
+            // and collect the resulting set of selected points
+            clickedPts = clickedPtsFor(searchInfo, hoverData);
             if(clickedPts.length > 0) {
+                // TODO Use forEach
                 for(j = 0; j < clickedPts.length; j++) {
-                    var clickedPt = clickedPts[j];
-                    var shouldSelect = !isPointSelected(trace, clickedPt);
+                    clickedPt = clickedPts[j];
+                    shouldSelect = !isPointSelected(trace, clickedPt);
                     traceSelection = searchInfo._module.toggleSelected(searchInfo, shouldSelect, [clickedPt]);
                 }
             } else {
@@ -409,10 +424,13 @@ function selectOnClick(gd, numClicks, evt, outlines) {
                 traceSelection = searchInfo._module.toggleSelected(searchInfo, true, []);
             }
 
+            // Merge this trace's selection with the other ones
+            // to prepare the grand selection state update
             allSelectionItems = allSelectionItems.concat(fillSelectionItem(traceSelection, searchInfo));
         }
 
-        var eventData = {points: allSelectionItems};
+        // Grand selection state update needs to be done once for the entire plot
+        eventData = {points: allSelectionItems};
         updateSelectedState(gd, searchTraces, eventData);
 
         // Remove outlines if no point is selected anymore
