@@ -60,12 +60,12 @@ exports.getPointsIn = function(searchInfo, polygon) {
     return pointsIn;
 };
 
-exports.toggleSelected = function(searchInfo, selected, pointsIds) {
-    if(!Array.isArray(pointsIds)) {
-        pointsIds = [];
+exports.toggleSelected = function(searchInfo, selected, pointIds) {
+    if(!Array.isArray(pointIds)) {
+        pointIds = [];
         for(var i = 0; i < searchInfo.cd.length; i++) {
-            pointsIds.push(i);
+            pointIds.push(i);
         }
     }
-    return _togglePointSelectedState(searchInfo, pointsIds, selected);
+    return _togglePointSelectedState(searchInfo, pointIds, selected);
 };

@@ -78,17 +78,17 @@ exports.getPointsIn = function(searchInfo, polygon) {
  *
  * @param {object} searchInfo - info about trace to modify
  * @param {boolean} selected - are these points to be selected (true) or deselected (false)
- * @param {integer[]} pointsIds - the points to modify - omit to modify all points
+ * @param {integer[]} pointIds - the points to modify - omit to modify all points
  *        in the trace. i.e. clearSelection is toggleSelection(searchInfo, false).
  *
  * @return {object[]} an array of all points selected after modification
  */
-exports.toggleSelected = function(searchInfo, selected, pointsIds) {
-    if(!Array.isArray(pointsIds)) {
-        pointsIds = [];
+exports.toggleSelected = function(searchInfo, selected, pointIds) {
+    if(!Array.isArray(pointIds)) {
+        pointIds = [];
         for(var i = 0; i < searchInfo.cd.length; i++) {
-            pointsIds.push(i);
+            pointIds.push(i);
         }
     }
-    return _togglePointSelectedState(searchInfo, pointsIds, selected);
+    return _togglePointSelectedState(searchInfo, pointIds, selected);
 };
