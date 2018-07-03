@@ -461,6 +461,7 @@ function plot(gd, subplot, cdata) {
         }
     }
 
+    // TODO Remove selectMode variable eventually
     var selectMode = dragmode === 'lasso' || dragmode === 'select';
     scene.selectBatch = null;
     scene.unselectBatch = null;
@@ -493,6 +494,7 @@ function plot(gd, subplot, cdata) {
             (height - vpSize.t) - (1 - yaxis.domain[1]) * vpSize.h
         ];
 
+        // TODO click-to-select: maybe attach selectedpoints to scene here to then use it in scene.draw to detect non-selection mode
         if(trace.selectedpoints || selectMode) {
             if(!selectMode) selectMode = true;
 
@@ -536,24 +538,22 @@ function plot(gd, subplot, cdata) {
         } : null;
     });
 
-    if(selectMode) {
-        // create select2d
-        if(!scene.select2d) {
-            // create scatter instance by cloning scatter2d
-            scene.select2d = createScatter(fullLayout._glcanvas.data()[1].regl);
-        }
+    // create select2d
+    if(!scene.select2d) {
+        // create scatter instance by cloning scatter2d
+        scene.select2d = createScatter(fullLayout._glcanvas.data()[1].regl);
+    }
 
-        if(scene.scatter2d && scene.selectBatch && scene.selectBatch.length) {
-            // update only traces with selection
-            scene.scatter2d.update(scene.unselectedOptions.map(function(opts, i) {
-                return scene.selectBatch[i] ? opts : null;
-            }));
-        }
+    if(scene.scatter2d && scene.selectBatch && scene.selectBatch.length) {
+        // update only traces with selection
+        scene.scatter2d.update(scene.unselectedOptions.map(function(opts, i) {
+            return scene.selectBatch[i] ? opts : null;
+        }));
+    }
 
-        if(scene.select2d) {
-            scene.select2d.update(scene.markerOptions);
-            scene.select2d.update(scene.selectedOptions);
-        }
+    if(scene.select2d) {
+        scene.select2d.update(scene.markerOptions);
+        scene.select2d.update(scene.selectedOptions);
     }
 
     // upload viewport/range data to GPU
