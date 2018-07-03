@@ -755,7 +755,7 @@ function calcHover(pointData, x, y, trace) {
     return pointData;
 }
 
-
+// TODO Remove eventually
 function selectPoints(searchInfo, polygon) {
     var cd = searchInfo.cd;
     var selection = [];
@@ -816,6 +816,102 @@ function selectPoints(searchInfo, polygon) {
     return selection;
 }
 
+function getPointsIn(searchInfo, polygon) {
+    var pointsIn = [];
+
+    var calcData = searchInfo.cd;
+    var trace = calcData[0].trace;
+    var stash = calcData[0].t;
+    var scene = stash._scene;
+    var i;
+
+    if(!scene) return [];
+
+    var hasOnlyLines = (!subTypes.hasMarkers(trace) && !subTypes.hasText(trace));
+    if(trace.visible !== true || hasOnlyLines) return [];
+
+    if(polygon !== false && !polygon.degenerate) {
+        for(i = 0; i < stash.count; i++) {
+            if(polygon.contains([stash.xpx[i], stash.ypx[i]])) {
+                pointsIn.push(i);
+            }
+        }
+    }
+
+    return pointsIn;
+}
+
+function toggleSelected(searchInfo, selected, pointIds) {
+    var clearSelection = selected === false && !Array.isArray(pointIds);
+    var selection = [];
+    var calcData = searchInfo.cd;
+    var stash = calcData[0].t;
+    var scene = stash._scene;
+    var oldEls;
+    var oldUnels;
+    var newEls;
+    var newUnels;
+    var i;
+
+    if(!Array.isArray(pointIds)) {
+        pointIds = arrayRange(stash.count);
+    }
+
+    // Mutate state
+    coerceSelectBatches(scene, stash);
+    oldEls = scene.selectBatch[stash.index];
+    oldUnels = scene.unselectBatch[stash.index];
+
+    if(selected) {
+        newEls = oldEls.concat(Lib.difference(pointIds, oldEls));
+        newUnels = Lib.difference(oldUnels, pointIds);
+    } else {
+        newEls = Lib.difference(oldEls, pointIds);
+        newUnels = oldUnels.concat(Lib.difference(pointIds, oldUnels));
+    }
+
+    scene.selectBatch[stash.index] = clearSelection ? null : newEls;
+    scene.unselectBatch[stash.index] = clearSelection ? arrayRange(stash.count) : newUnels;
+
+    // Compute and return selection array from internal state
+    for(i = 0; i < newEls.length; i++) {
+        selection.push({
+            pointNumber: newEls[i],
+            x: stash.x[newEls[i]],
+            y: stash.y[newEls[i]]
+        });
+    }
+
+    // TODO remove eventually
+    // console.log('els  : ' + JSON.stringify(scene.selectBatch[stash.index]));
+    // console.log('unels: ' + JSON.stringify(scene.unselectBatch[stash.index]));
+    // console.log('selection: ' + JSON.stringify(selection));
+    return selection;
+}
+
+function coerceSelectBatches(scene, stash) {
+    var i;
+
+    if(!scene.selectBatch) {
+        scene.selectBatch = [];
+        scene.unselectBatch = [];
+    }
+
+    if(!scene.selectBatch[stash.index]) {
+        // enter every trace select mode
+        for(i = 0; i < scene.count; i++) {
+            scene.selectBatch[i] = [];
+            scene.unselectBatch[i] = [];
+        }
+
+        scene.unselectBatch[stash.index] = arrayRange(stash.count);
+
+        // TODO what does that do?
+        // we should turn scatter2d into unselected once we have any points selected
+        scene.scatter2d.update(scene.unselectedOptions);
+    }
+}
+
 function style(gd, cds) {
     if(!cds) return;
 
@@ -845,7 +941,8 @@ module.exports = {
     plot: plot,
     hoverPoints: hoverPoints,
     style: style,
-    selectPoints: selectPoints,
+    getPointsIn: getPointsIn,
+    toggleSelected: toggleSelected,
 
     sceneOptions: sceneOptions,
     sceneUpdate: sceneUpdate,
