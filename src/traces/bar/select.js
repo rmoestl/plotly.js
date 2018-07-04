@@ -62,6 +62,7 @@ exports.getPointsIn = function(searchInfo, polygon) {
 
 exports.toggleSelected = function(searchInfo, selected, pointIds) {
     if(!Array.isArray(pointIds)) {
+        // TODO Use arrayRange maybe
         pointIds = [];
         for(var i = 0; i < searchInfo.cd.length; i++) {
             pointIds.push(i);
